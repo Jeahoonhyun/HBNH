@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LoginUsr">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="loginVO" type="hbnh.com.cmm.LoginVO"/>
+
+	<!-- 로그인 처리를 위한 resultMap -->
+	<resultMap id="login" class="hbnh.com.cmm.LoginVO">
+		<result property="id" column="id" columnIndex="1"/>
+		<result property="name" column="name" columnIndex="2"/>
+		<result property="ihidNum" column="ihidNum" columnIndex="3"/>
+		<result property="email" column="email" columnIndex="4"/>
+		<result property="password" column="password" columnIndex="5"/>
+		<result property="userSe" column="userSe" columnIndex="6"/>
+		<result property="orgnztId" column="orgnztId" columnIndex="7"/>
+		<result property="uniqId" column="uniqId" columnIndex="8"/>	
+		<result property="adminYn" column="adminYn" columnIndex="9"/>			
+	</resultMap>
+	
+	<!-- 아이디 찾기를 위한 resultMap 
+	<resultMap id="id" class="hbnh.com.cmm.LoginVO">
+		<result property="id" column="id" columnIndex="1"/>
+	</resultMap>
+	-->
+	<!-- 비밀번호 처리를 위한 resultMap 
+	<resultMap id="password" class="hbnh.com.cmm.LoginVO">
+		<result property="password" column="password" columnIndex="1"/>
+	</resultMap>
+	-->
+	<!-- 일반 로그인 -->
+	<select id="loginDAO.actionLogin" resultMap="login">
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+            SELECT USER.EMPLYR_ID AS id
+                 , USER.USER_NM AS name
+                 , USER.PASSWORD AS password
+                 , USER.IHIDNUM AS ihidNum
+                 , USER.EMAIL_ADRES AS email
+                 , 'USR' AS userSe
+                 , USER.ORGNZT_ID AS orgnztId
+                 , USER.ESNTL_ID AS uniqId
+                 , (select CASE WHEN count(*) > 0 THEN 'Y' ELSE 'N' END
+                      from LETTNEMPLYRSCRTYESTBS 
+					where author_code = 'ROLE_ADMIN'
+                      and SCRTY_DTRMN_TRGET_ID = USER.ESNTL_ID) AS adminYn
+                 , USER.CHURCH_CODE        churchCode
+                 , (SELECT MAX(INSPECTION_CODE) FROM TB_CHURCH_INFO WHERE CHURCH_CODE = USER.CHURCH_CODE) AS inspectionCode
+              FROM LETTNEMPLYRINFO USER
+             WHERE USER.EMPLYR_ID = #id#
+               AND USER.PASSWORD = #password#
+               AND USER.EMPLYR_STTUS_CODE = 'P'
+			]]>
+		</isEqual>
+	</select>
+	
+	<!-- 인증서 로그인
+	<select id="loginDAO.actionCrtfctLogin" resultMap="login">
+		<![CDATA[
+		SELECT emplyr_id AS id
+		     , USER_NM AS name
+		     , password AS password
+		     , ihidnum AS ihidNum
+		     , email_adres AS email
+		     , 'USR' AS userSe
+		     , orgnzt_id AS orgnztId
+		     , ESNTL_ID AS uniqId
+		  FROM LETTNEMPLYRINFO
+		 WHERE sub_dn = #dn#
+		]]>
+	</select>
+	 -->
+	<!-- 아이디 찾기
+	<select id="loginDAO.searchId" resultMap="id">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			SELECT mber_id AS id
+			  FROM LETTNGNRLMBER
+			 WHERE mber_nm = #name#
+			   AND mber_email_adres = #email#
+			   AND mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			SELECT entrprsmber_id AS id
+			  FROM LETTNENTRPRSMBER
+			 WHERE cmpny_nm = #name#
+			   AND applcnt_email_adres = #email#
+			   AND entrprs_mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			SELECT emplyr_id AS id
+			  FROM LETTNEMPLYRINFO
+			 WHERE USER_NM = #name#
+			   AND email_adres = #email#
+			   AND emplyr_sttus_code = 'P'
+			]]>
+		</isEqual>
+	</select>
+	 -->
+	<!-- 비밀번호 찾기 
+	<select id="loginDAO.searchPassword" resultMap="password">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			SELECT password AS password
+			  FROM LETTNGNRLMBER
+			 WHERE mber_id = #id#
+			   AND mber_nm = #name#
+			   AND mber_email_adres = #email#
+			   AND password_hint = #passwordHint#
+			   AND password_cnsr = #passwordCnsr#
+			   AND mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			SELECT entrprs_mber_password AS password
+			  FROM LETTNENTRPRSMBER
+			 WHERE entrprsmber_id = #id#
+			   AND cmpny_nm = #name#
+			   AND applcnt_email_adres = #email#
+			   AND entrprs_mber_password_hint = #passwordHint#
+			   AND entrprs_mber_password_cnsr = #passwordCnsr#
+			   AND entrprs_mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			SELECT password AS password
+			  FROM LETTNEMPLYRINFO
+			 WHERE emplyr_id = #id#
+			   AND USER_NM = #name#
+			   AND email_adres = #email#
+			   AND password_hint = #passwordHint#
+			   AND password_cnsr = #passwordCnsr#
+			   AND emplyr_sttus_code = 'P'
+			]]>
+		</isEqual>
+	</select>
+	-->
+	<!-- 변경된 비밀번호를 저장 
+	<update id="loginDAO.updatePassword">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			UPDATE LETTNGNRLMBER
+			   SET password = #password#
+			 WHERE mber_id = #id#
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			UPDATE LETTNENTRPRSMBER
+			   SET entrprs_mber_password = #password#
+			 WHERE entrprsmber_id = #id#
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			UPDATE LETTNEMPLYRINFO
+			   SET password = #password#
+			 WHERE emplyr_id = #id#
+			]]>
+		</isEqual>
+	</update>
+	-->
+</sqlMap>

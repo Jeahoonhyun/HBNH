@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="User">
+
+    <typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+    <typeAlias  alias="userSearchVO" type = "hbnh.let.uss.umt.service.UserDefaultVO"/>
+    <typeAlias  alias="userVO"       type = "hbnh.let.uss.umt.service.UserManageVO"/>
+
+    <select id="userManageDAO.selectUserList_S" parameterClass="userSearchVO" resultClass="egovMap">
+SELECT 
+    uniqId, userTy, userId , userNm, emailAdres, areaNo, middleTelno, endTelno, moblphonNo, groupId, sttus, sbscrbDe
+FROM(
+    SELECT
+        ESNTL_ID               uniqId,
+        'USR03'               userTy,
+        EMPLYR_ID             userId,
+        USER_NM             userNm,
+        EMAIL_ADRES           emailAdres,
+        AREA_NO               areaNo,
+        HOUSE_MIDDLE_TELNO      middleTelno,
+        HOUSE_END_TELNO         endTelno,
+        MBTLNUM           moblphonNo,
+        GROUP_ID              groupId,
+        EMPLYR_STTUS_CODE     sttus,
+        SBSCRB_DE             sbscrbDe
+    FROM    LETTNEMPLYRINFO
+    ) A
+        WHERE 1=1
+        <isNotEqual prepend="AND" property="sbscrbSttus" compareValue="0">
+            sttus LIKE  #sbscrbSttus#
+        </isNotEqual>
+        <isEqual prepend="AND" property="searchCondition" compareValue="0">
+            userId LIKE #searchKeyword#
+        </isEqual>
+        <isEqual prepend="AND" property="searchCondition" compareValue="1">
+            userNm LIKE '%' #searchKeyword# '%'
+        </isEqual>
+        ORDER BY sbscrbDe DESC
+        LIMIT #recordCountPerPage# OFFSET #firstIndex#
+    </select>
+    
+    <select id="userManageDAO.selectUserListTotCnt_S" parameterClass="userSearchVO" resultClass="int">
+            SELECT COUNT(1) totcnt
+            FROM(
+            SELECT
+                ESNTL_ID               uniqId,
+                'USR03'               userTy,
+                EMPLYR_ID             userId,
+                USER_NM             userNm,
+                EMAIL_ADRES           emailAdres,
+                AREA_NO               areaNo,
+                HOUSE_MIDDLE_TELNO      middleTelno,
+                HOUSE_END_TELNO         endTelno,
+                MBTLNUM           moblphonNo,
+                GROUP_ID              groupId,
+                EMPLYR_STTUS_CODE     sttus,
+                SBSCRB_DE             sbscrbDe
+            FROM    LETTNEMPLYRINFO
+            ) A
+        WHERE 1=1
+            <isNotEqual prepend="AND" property="sbscrbSttus" compareValue="0">
+                sttus LIKE  #sbscrbSttus#
+            </isNotEqual>
+            <isEqual prepend="AND" property="searchCondition" compareValue="0">
+                userId LIKE #searchKeyword#
+            </isEqual>
+            <isEqual prepend="AND" property="searchCondition" compareValue="1">
+                userNm LIKE '%' #searchKeyword# '%'
+            </isEqual>
+    </select>
+    
+    <insert id="userManageDAO.insertUser_S">
+        <![CDATA[
+            INSERT INTO LETTNEMPLYRINFO 
+                (   ESNTL_ID             ,
+                    EMPLYR_ID           ,
+                    USER_NM           ,
+                    PASSWORD            ,
+                    PASSWORD_HINT       ,
+                    PASSWORD_CNSR       ,
+                    EMPL_NO             ,
+                    IHIDNUM             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    OFCPS_NM            ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    SBSCRB_DE           ,                    
+                    CRTFC_DN_VALUE      ,
+                    CHURCH_CODE         )
+            VALUES (
+                    #uniqId#            ,
+                    #emplyrId#          ,
+                    #emplyrNm#          ,
+                    #password#          ,
+                    #passwordHint#      ,
+                    #passwordCnsr#      ,                   
+                    #emplNo#            ,
+                    #ihidnum#           ,
+                    #sexdstnCode#       ,
+                    #brth#              ,
+                    #areaNo#            ,
+                    #homemiddleTelno#   ,
+                    #homeendTelno#      ,
+                    #fxnum#             ,
+                    #homeadres#         ,
+                    #detailAdres#       ,
+                    #zip#               ,
+                    #offmTelno#         ,
+                    #moblphonNo#        ,
+                    #emailAdres#        ,
+                    #ofcpsNm#           ,
+                    #groupId#           ,
+                    #orgnztId#          ,
+                    #insttCode#         ,
+                    #emplyrSttusCode#   ,
+                    sysdate()           ,                    
+                    #subDn#             ,
+                    #churchCode#        )
+        ]]>
+    </insert>
+    
+    <delete id="userManageDAO.deleteUser_S">
+        <![CDATA[
+            DELETE FROM LETTNEMPLYRINFO 
+            WHERE ESNTL_ID=#delId#
+        ]]>
+    </delete>
+    
+    <select id="userManageDAO.selectUser_S" resultClass="userVO">
+        <![CDATA[
+        SELECT
+            USER.ESNTL_ID           uniqId            ,
+                'USR03'           userTy,
+            USER.EMPLYR_ID         emplyrId          ,
+            USER.USER_NM         emplyrNm          ,
+            USER.PASSWORD          password          ,
+            USER.PASSWORD_HINT     passwordHint      ,
+            USER.PASSWORD_CNSR     passwordCnsr      ,
+            USER.EMPL_NO           emplNo            ,
+            USER.IHIDNUM           ihidnum           ,
+            USER.SEXDSTN_CODE      sexdstnCode       ,
+            USER.BRTHDY              brth              ,
+            USER.AREA_NO           areaNo            ,
+            USER.HOUSE_MIDDLE_TELNO  homemiddleTelno   ,
+            USER.HOUSE_END_TELNO     homeendTelno      ,
+            USER.FXNUM             fxnum             ,
+            USER.HOUSE_ADRES         homeadres         ,
+            USER.DETAIL_ADRES      detailAdres       ,
+            USER.ZIP               zip               ,
+            USER.OFFM_TELNO        offmTelno         ,
+            USER.MBTLNUM       moblphonNo        ,
+            USER.EMAIL_ADRES       emailAdres        ,
+            USER.OFCPS_NM          ofcpsNm           ,
+            USER.GROUP_ID          groupId           ,
+            USER.ORGNZT_ID         orgnztId          ,
+            USER.PSTINST_CODE        insttCode         ,
+            USER.EMPLYR_STTUS_CODE emplyrSttusCode   , 
+            USER.SBSCRB_DE         sbscrbDe          ,
+            USER.CRTFC_DN_VALUE            subDn     ,
+            USER.CHURCH_CODE        churchCode       ,
+            (SELECT MAX(INSPECTION_CODE) FROM TB_CHURCH_INFO WHERE CHURCH_CODE = USER.CHURCH_CODE) AS inspectionCode
+        FROM LETTNEMPLYRINFO USER
+            WHERE ESNTL_ID=#uniqId#
+        ]]>
+    </select>
+    
+    <update id="userManageDAO.updateUser_S">
+        <![CDATA[
+            UPDATE LETTNEMPLYRINFO 
+            SET USER_NM           = #emplyrNm#        ,  
+        ]]> 
+			<isNotEmpty  property="password">
+			    PASSWORD =  #password#     ,
+			</isNotEmpty > 
+		<![CDATA[            
+                SEXDSTN_CODE        = #sexdstnCode#     ,
+                BRTHDY                = #brth#            ,
+                FXNUM               = #fxnum#           ,
+                OFFM_TELNO          = #offmTelno#       ,
+                MBTLNUM         = #moblphonNo#      ,
+                EMAIL_ADRES         = #emailAdres#      ,
+                OFCPS_NM            = #ofcpsNm#         ,
+                PSTINST_CODE          = #insttCode#   ,
+                CHURCH_CODE     =        #churchCode#
+            WHERE ESNTL_ID = #uniqId#
+        ]]>
+    </update>
+    
+    <insert id="userManageDAO.insertUserHistory_S">
+        <![CDATA[
+            INSERT INTO LETTHEMPLYRINFOCHANGEDTLS 
+                (   EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    CHANGE_DE           )
+            SELECT 
+                    EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    now()
+            FROM LETTNEMPLYRINFO
+            WHERE ESNTL_ID = #uniqId#
+        ]]>
+    </insert>
+    
+    <select id="userManageDAO.checkIdDplct_S" resultClass="int">
+        <![CDATA[
+            SELECT COUNT(1) usedCnt
+                FROM(
+                SELECT
+                    EMPLYR_ID             userId
+                FROM    LETTNEMPLYRINFO
+                UNION ALL
+                SELECT
+                    ENTRPRS_MBER_ID        userId
+                FROM    LETTNENTRPRSMBER
+                UNION ALL
+                SELECT
+                    MBER_ID               userId
+                FROM    LETTNGNRLMBER
+                ) A
+            WHERE userId = #checkId#
+        ]]>
+    </select>
+    
+    <update id="userManageDAO.updatePassword_S">
+        <![CDATA[
+            UPDATE LETTNEMPLYRINFO 
+            SET 
+                   PASSWORD   =  #password#
+            WHERE  ESNTL_ID  = #uniqId#
+        ]]>
+    </update>
+    
+    <select id="userManageDAO.selectPassword_S" resultClass="userVO">
+        <![CDATA[
+            SELECT
+                    PASSWORD          password 
+            FROM    LETTNEMPLYRINFO
+            WHERE   ESNTL_ID=#uniqId#
+        ]]>
+    </select>
+    
+    <select id="userManageDAO.selectUserInfoFind" resultClass="userVO">
+        <![CDATA[
+            SELECT ESNTL_ID                     uniqId
+                 , EMPLYR_ID                    emplyrId          
+                 , USER_NM                      emplyrNm          
+                 , REPLACE(MBTLNUM,'-','')      moblphonNo        
+                 , EMAIL_ADRES                  emailAdres        
+             FROM  LETTNEMPLYRINFO
+            WHERE 1=1
+              AND EMPLYR_ID = #emplyrId#
+              AND USER_NM = #emplyrNm#
+              AND EMAIL_ADRES = #emailAdres#
+              AND REPLACE(MBTLNUM,'-','') = #moblphonNo#
+        ]]>
+    </select>
+    
+</sqlMap>
